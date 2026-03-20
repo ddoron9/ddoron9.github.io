@@ -1,3 +1,11 @@
+---
+layout: home
+author_profile: true
+title: "CYBERLOG"
+classes: wide
+---
+
+<!--
 <style>
   .hero {
     background: linear-gradient(135deg, #dbeafe 0%, #f5f3ff 100%);
@@ -159,3 +167,6 @@ tags: [ai, blog]
 ```
 
 `category`는 `Tech`, `Life`, `Books` 중 하나를 사용하면 됩니다.
+-->
+
+> 밤에 만든 것들을 기록하는 개발 블로그.

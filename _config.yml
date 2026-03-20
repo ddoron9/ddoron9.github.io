@@ -1,0 +1,52 @@
+title: "DDORON9 // CYBERLOG"
+description: "Code, notes, experiments, and midnight builds."
+url: "https://ddoron9.github.io"
+baseurl: ""
+
+remote_theme: "mmistakes/minimal-mistakes@4.28.0"
+
+plugins:
+  - jekyll-include-cache
+  - jekyll-feed
+  - jekyll-seo-tag
+
+locale: "ko-KR"
+timezone: "Asia/Seoul"
+
+author:
+  name: "ddoron9"
+  bio: "Building in the dark, shipping in neon."
+  location: "Seoul"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-github"
+      url: "https://github.com/ddoron9"
+
+minimal_mistakes_skin: "dark"
+
+search: true
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: false
+      share: false
+      related: true
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
+      author_profile: true
+
+paginate: 5
+paginate_path: /page:num/
+
+header_pages:
+  - about.md
+
