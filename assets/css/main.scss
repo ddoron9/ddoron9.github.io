@@ -282,6 +282,42 @@ pre {
   color: var(--muted);
 }
 
+/* ===== Single Layout Width ===== */
+.layout--single .page {
+  float: none;
+  width: min(96vw, 1680px);
+  max-width: 1680px;
+  padding-right: 0;
+}
+
+.layout--single .page__inner-wrap {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.layout--single .page__title,
+.layout--single .page__lead,
+.layout--single .page__taxonomy,
+.layout--single .page__date,
+.layout--single .page__content,
+.layout--single .page__meta,
+.layout--single .page__share,
+.layout--single .page__comments,
+.layout--single .page__related {
+  float: none;
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.layout--single .sidebar {
+  display: none;
+}
+
 /* ===== Home ===== */
 .page:has(.home-shell) {
   float: none;
