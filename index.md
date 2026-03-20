@@ -170,3 +170,160 @@ tags: [ai, blog]
 -->
 
 > 밤에 만든 것들을 기록하는 개발 블로그.
+
+<style>
+  .category-filter__panel {
+    display: none;
+  }
+
+  .category-filter__panel.is-active {
+    display: block;
+  }
+
+  .category-filter__list {
+    margin-top: 0.75rem;
+  }
+
+  .category-filter__item {
+    border: 1px solid rgba(35, 240, 255, 0.14);
+    border-radius: 16px;
+    background: rgba(10, 14, 28, 0.55);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 18px rgba(35, 240, 255, 0.05);
+  }
+
+  .category-filter__item-title {
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+
+  .category-filter__item-title a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  .category-filter__item-title a:hover {
+    text-decoration: underline;
+  }
+
+  .category-filter__item-meta {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .category-filter__hint {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
+</style>
+
+<div class="category-filter">
+  <h2>Recent Posts</h2>
+  <div class="category-filter__hint">사이드바 카테고리를 누르면 오른쪽 목록이 해당 카테고리 최신순으로 바뀝니다.</div>
+
+  <div class="category-filter__panels">
+    {% assign all_posts_sorted = site.posts | sort: "date" | reverse %}
+    <section class="category-filter__panel is-active" data-category-panel="all">
+      <div class="category-filter__list">
+        {% for post in all_posts_sorted limit: 10 %}
+          <article class="category-filter__item">
+            <h3 class="category-filter__item-title">
+              <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+            </h3>
+            <div class="category-filter__item-meta">
+              {{ post.date | date: "%Y-%m-%d" }}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% for category_pair in site.categories %}
+      {% assign cat_name = category_pair[0] %}
+      {% assign cat_slug = cat_name | slugify %}
+      {% assign cat_posts_sorted = category_pair[1] | sort: "date" | reverse %}
+      <section class="category-filter__panel" data-category-panel="{{ cat_slug }}">
+        <div class="category-filter__list">
+          {% for post in cat_posts_sorted limit: 10 %}
+            <article class="category-filter__item">
+              <h3 class="category-filter__item-title">
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              </h3>
+              <div class="category-filter__item-meta">
+                {{ post.date | date: "%Y-%m-%d" }}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  (function () {
+    function normalizeSlug(s) {
+      if (!s) return "";
+      return String(s)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+    }
+
+    function extractSlugFromHref(href) {
+      if (!href) return "";
+      try {
+        const u = new URL(href, window.location.origin);
+        const parts = u.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        return normalizeSlug(decodeURIComponent(last));
+      } catch (e) {
+        // Fallback: try to use fragment or raw href
+        const hash = href.split("#")[1];
+        return normalizeSlug(hash || href);
+      }
+    }
+
+    function hideRecentPosts() {
+      // Minimal Mistakes home에는 "Recent Posts" 섹션이 기본으로 들어가 있음.
+      // 그 영역은 우리가 렌더링한 필터 섹션으로 대체되도록 숨김 처리.
+      const headings = Array.from(document.querySelectorAll("h1, h2, h3"));
+      headings.forEach((h) => {
+        // 우리가 만든 섹션은 숨기지 않음
+        if (h.closest(".category-filter")) return;
+        const t = (h.textContent || "").trim().toLowerCase();
+        if (t === "recent posts" || t.includes("recent posts") || t.includes("최근글")) {
+          const container = h.closest("section") || h.closest("div") || h.parentElement;
+          if (container) container.style.display = "none";
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      hideRecentPosts();
+
+      const panels = Array.from(document.querySelectorAll("[data-category-panel]"));
+      const panelBySlug = {};
+      panels.forEach((p) => {
+        panelBySlug[p.dataset.categoryPanel] = p;
+      });
+
+      // Minimal Mistakes taxonomy widget (categories/tags) 링크
+      const links = Array.from(document.querySelectorAll(".taxonomy__index a"));
+      links.forEach((a) => {
+        a.addEventListener("click", function (e) {
+          const slug = extractSlugFromHref(a.getAttribute("href"));
+          if (!slug) return;
+          if (panelBySlug[slug]) {
+            e.preventDefault();
+            panels.forEach((p) => p.classList.toggle("is-active", p.dataset.categoryPanel === slug));
+          }
+        });
+      });
+    });
+  })();
+</script>
