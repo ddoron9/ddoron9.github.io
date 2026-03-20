@@ -8,6 +8,433 @@ classes: wide
 > 밤에 만든 것들을 기록하는 개발 블로그.
 
 <style>
+  #category-inline-panel {
+    margin-top: 1rem;
+    border: 1px solid rgba(35, 240, 255, 0.18);
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-cyan);
+    overflow: hidden;
+  }
+
+  #category-inline-panel.is-hidden {
+    display: none;
+  }
+
+  #category-inline-panel .category-inline-title {
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.65rem;
+  }
+
+  #category-inline-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #category-inline-panel li {
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(35, 240, 255, 0.10);
+  }
+
+  #category-inline-panel li:first-child {
+    border-top: 0;
+  }
+
+  #category-inline-panel a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  #category-inline-panel a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(35, 240, 255, 0.35);
+  }
+
+  #category-inline-panel .meta {
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+</style>
+
+<script>
+  (function () {
+    function normalizeSlug(s) {
+      if (!s) return "";
+      return String(s)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9가-힣\-_]/g, "");
+    }
+
+    function extractSlugFromHref(href) {
+      if (!href) return "";
+      try {
+        const u = new URL(href, window.location.origin);
+        const parts = u.pathname.split("/").filter(Boolean);
+        return normalizeSlug(decodeURIComponent(parts[parts.length - 1] || ""));
+      } catch (e) {
+        const hash = href.split("#")[1];
+        return normalizeSlug(hash || href);
+      }
+    }
+
+    const POSTS = [
+      {% for post in site.posts %}
+        {
+          url: {{ post.url | relative_url | jsonify }},
+          title: {{ post.title | jsonify }},
+          date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
+          categories: [
+            {% for c in post.categories %}
+              {{ c | slugify | jsonify }}{% unless forloop.last %}, {% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
+
+    const POSTS_BY_CATEGORY = {};
+    const ALL = POSTS.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    POSTS.forEach((p) => {
+      (p.categories || []).forEach((slug) => {
+        if (!POSTS_BY_CATEGORY[slug]) POSTS_BY_CATEGORY[slug] = [];
+        POSTS_BY_CATEGORY[slug].push(p);
+      });
+    });
+
+    Object.keys(POSTS_BY_CATEGORY).forEach((k) => {
+      POSTS_BY_CATEGORY[k].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+    function getRecentContainer() {
+      const headings = Array.from(
+        document.querySelectorAll(".page__content h1, .page__content h2, .page__content h3")
+      );
+      const recentHeading = headings.find((h) => {
+        const t = (h.textContent || "").trim();
+        return t === "Recent Posts" || t.includes("Recent Posts") || t.includes("최근글");
+      });
+      if (!recentHeading) return null;
+      return recentHeading.closest("section") || recentHeading.closest("div") || recentHeading.parentElement;
+    }
+
+    function ensurePanelMounted() {
+      let panel = document.getElementById("category-inline-panel");
+      if (panel) return panel;
+
+      panel = document.createElement("div");
+      panel.id = "category-inline-panel";
+      panel.className = "is-hidden";
+      panel.innerHTML = `
+        <div class="category-inline-title">Recent Posts</div>
+        <ul></ul>
+      `;
+
+      const recentContainer = getRecentContainer();
+      if (recentContainer && recentContainer.parentElement) {
+        // 최근글 섹션 자리에 자연스럽게 들어가 보이도록
+        recentContainer.parentElement.insertBefore(panel, recentContainer);
+      } else {
+        const target = document.querySelector(".page__content") || document.body;
+        target.appendChild(panel);
+      }
+
+      return panel;
+    }
+
+    function hideRecentContainer() {
+      const recentContainer = getRecentContainer();
+      if (recentContainer) recentContainer.style.display = "none";
+    }
+
+    function renderPanel(categorySlug, labelText) {
+      const panel = document.getElementById("category-inline-panel");
+      if (!panel) return;
+
+      const title = panel.querySelector(".category-inline-title");
+      const list = panel.querySelector("ul");
+      if (!title || !list) return;
+
+      const posts = categorySlug === "all" ? ALL : (POSTS_BY_CATEGORY[categorySlug] || []);
+      title.textContent = categorySlug === "all" ? "Recent Posts" : (labelText || categorySlug);
+
+      list.innerHTML = "";
+      posts.slice(0, 10).forEach((p) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = p.url;
+        a.textContent = p.title;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = p.date;
+
+        li.appendChild(a);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+
+      panel.classList.remove("is-hidden");
+      hideRecentContainer();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      ensurePanelMounted();
+      renderPanel("all");
+
+      const taxonomyLinks = Array.from(document.querySelectorAll(".taxonomy__index a"));
+      taxonomyLinks.forEach((a) => {
+        a.addEventListener("click", function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+          const href = a.getAttribute("href") || "";
+          const slugFromHref = extractSlugFromHref(href);
+          const slugFromText = normalizeSlug(a.textContent || "");
+
+          const slug =
+            slugFromHref && (POSTS_BY_CATEGORY[slugFromHref] || slugFromHref === "all")
+              ? slugFromHref
+              : slugFromText;
+
+          if (!slug) return;
+          e.preventDefault();
+          renderPanel(slug, (a.textContent || "").trim());
+        });
+      });
+    });
+  })();
+</script>
+
+---
+layout: home
+author_profile: true
+title: "CYBERLOG"
+classes: wide
+---
+
+> 밤에 만든 것들을 기록하는 개발 블로그.
+
+<style>
+  #category-inline-panel {
+    margin-top: 1rem;
+    border: 1px solid rgba(35, 240, 255, 0.18);
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-cyan);
+    overflow: hidden;
+  }
+
+  #category-inline-panel.is-hidden {
+    display: none;
+  }
+
+  #category-inline-panel .category-inline-title {
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.65rem;
+  }
+
+  #category-inline-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #category-inline-panel li {
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(35, 240, 255, 0.10);
+  }
+
+  #category-inline-panel li:first-child {
+    border-top: 0;
+  }
+
+  #category-inline-panel a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  #category-inline-panel a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(35, 240, 255, 0.35);
+  }
+
+  #category-inline-panel .meta {
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+</style>
+
+<script>
+  (function () {
+    function normalizeSlug(s) {
+      if (!s) return "";
+      return String(s)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9가-힣\-_]/g, "");
+    }
+
+    function extractSlugFromHref(href) {
+      if (!href) return "";
+      try {
+        const u = new URL(href, window.location.origin);
+        const parts = u.pathname.split("/").filter(Boolean);
+        return normalizeSlug(decodeURIComponent(parts[parts.length - 1] || ""));
+      } catch (e) {
+        const hash = href.split("#")[1];
+        return normalizeSlug(hash || href);
+      }
+    }
+
+    const POSTS = [
+      {% for post in site.posts %}
+        {
+          url: {{ post.url | relative_url | jsonify }},
+          title: {{ post.title | jsonify }},
+          date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
+          categories: [
+            {% for c in post.categories %}
+              {{ c | slugify | jsonify }}{% unless forloop.last %}, {% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
+
+    const POSTS_BY_CATEGORY = {};
+    const ALL = POSTS.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    POSTS.forEach((p) => {
+      (p.categories || []).forEach((slug) => {
+        if (!POSTS_BY_CATEGORY[slug]) POSTS_BY_CATEGORY[slug] = [];
+        POSTS_BY_CATEGORY[slug].push(p);
+      });
+    });
+
+    Object.keys(POSTS_BY_CATEGORY).forEach((k) => {
+      POSTS_BY_CATEGORY[k].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+    function getRecentContainer() {
+      const headings = Array.from(
+        document.querySelectorAll(".page__content h1, .page__content h2, .page__content h3")
+      );
+      const recentHeading = headings.find((h) => {
+        const t = (h.textContent || "").trim();
+        return t === "Recent Posts" || t.includes("Recent Posts") || t.includes("최근글");
+      });
+      if (!recentHeading) return null;
+      return recentHeading.closest("section") || recentHeading.closest("div") || recentHeading.parentElement;
+    }
+
+    function ensurePanelMounted() {
+      let panel = document.getElementById("category-inline-panel");
+      if (panel) return panel;
+
+      panel = document.createElement("div");
+      panel.id = "category-inline-panel";
+      panel.className = "is-hidden";
+      panel.innerHTML = `
+        <div class="category-inline-title">Recent Posts</div>
+        <ul></ul>
+      `;
+
+      const recentContainer = getRecentContainer();
+      if (recentContainer && recentContainer.parentElement) {
+        recentContainer.parentElement.insertBefore(panel, recentContainer.nextSibling);
+      } else {
+        const target = document.querySelector(".page__content") || document.body;
+        target.appendChild(panel);
+      }
+
+      return panel;
+    }
+
+    function hideRecentContainer() {
+      const recentContainer = getRecentContainer();
+      if (recentContainer) recentContainer.style.display = "none";
+    }
+
+    function renderPanel(categorySlug, labelText) {
+      const panel = document.getElementById("category-inline-panel");
+      if (!panel) return;
+
+      const title = panel.querySelector(".category-inline-title");
+      const list = panel.querySelector("ul");
+      if (!title || !list) return;
+
+      const posts = categorySlug === "all" ? ALL : (POSTS_BY_CATEGORY[categorySlug] || []);
+
+      title.textContent = categorySlug === "all" ? "Recent Posts" : (labelText || categorySlug);
+
+      list.innerHTML = "";
+      posts.slice(0, 10).forEach((p) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = p.url;
+        a.textContent = p.title;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = p.date;
+
+        li.appendChild(a);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+
+      panel.classList.remove("is-hidden");
+      hideRecentContainer();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      ensurePanelMounted();
+      renderPanel("all");
+
+      // 사이드바 카테고리(기존 버튼)를 클릭하면 목록만 바꿈
+      const taxonomyLinks = Array.from(document.querySelectorAll(".taxonomy__index a"));
+      taxonomyLinks.forEach((a) => {
+        a.addEventListener("click", function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+          const href = a.getAttribute("href") || "";
+          const slugFromHref = extractSlugFromHref(href);
+          const slugFromText = normalizeSlug(a.textContent || "");
+
+          const slug =
+            slugFromHref && (POSTS_BY_CATEGORY[slugFromHref] || slugFromHref === "all")
+              ? slugFromHref
+              : slugFromText;
+
+          if (!slug) return;
+          e.preventDefault();
+          renderPanel(slug, a.textContent.trim());
+        });
+      });
+    });
+  })();
+</script>
+
+---
+layout: home
+author_profile: true
+title: "CYBERLOG"
+classes: wide
+---
+
+> 밤에 만든 것들을 기록하는 개발 블로그.
+
+<style>
   /* Sidebar category 클릭 시, 오른쪽에 표시될 리스트 패널 */
   #category-inline-panel {
     margin-top: 1rem;
@@ -660,6 +1087,7 @@ tags: [ai, blog]
   }
 </style>
 
+<!--
 <div class="category-filter">
   <h2>Recent Posts</h2>
   <div class="category-filter__hint">사이드바 카테고리를 누르면 오른쪽 목록이 해당 카테고리 최신순으로 바뀝니다.</div>
@@ -766,3 +1194,4 @@ tags: [ai, blog]
     });
   })();
 </script>
+-->
