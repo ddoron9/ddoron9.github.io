@@ -47,9 +47,6 @@ defaults:
       layout: single
       author_profile: true
 
-paginate: 5
-paginate_path: /page:num/
-
 header_pages:
   - about.md
   - categories.md

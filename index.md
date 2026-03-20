@@ -257,10 +257,15 @@ classes: wide
         <span>{{ site.posts | size }}</span>
       </button>
       {% for category in home_categories %}
-        {% assign category_posts = site.categories[category] %}
+        {% assign category_count = 0 %}
+        {% for post in site.posts %}
+          {% if post.categories contains category %}
+            {% assign category_count = category_count | plus: 1 %}
+          {% endif %}
+        {% endfor %}
         <button class="home-nav__button" type="button" data-key="{{ category }}">
           <span>{{ category }}</span>
-          <span>{{ category_posts | size }}</span>
+          <span>{{ category_count }}</span>
         </button>
       {% endfor %}
     </nav>
@@ -319,17 +324,20 @@ classes: wide
         {% endfor %}
       ],
       {% for category in home_categories %}
-        {% assign category_posts = site.categories[category] | default: empty %}
-        {% assign category_posts = category_posts | sort: "date" | reverse %}
         {{ category | jsonify }}: [
-          {% for post in category_posts %}
-            {
-              title: {{ post.title | jsonify }},
-              url: {{ post.url | relative_url | jsonify }},
-              date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
-              category: {{ category | jsonify }},
-              excerpt: {{ post.excerpt | strip_html | strip_newlines | truncate: 180 | jsonify }}
-            }{% unless forloop.last %},{% endunless %}
+          {% assign emitted = false %}
+          {% for post in site.posts %}
+            {% if post.categories contains category %}
+              {% if emitted %},{% endif %}
+              {
+                title: {{ post.title | jsonify }},
+                url: {{ post.url | relative_url | jsonify }},
+                date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
+                category: {{ category | jsonify }},
+                excerpt: {{ post.excerpt | strip_html | strip_newlines | truncate: 180 | jsonify }}
+              }
+              {% assign emitted = true %}
+            {% endif %}
           {% endfor %}
         ]{% unless forloop.last %},{% endunless %}
       {% endfor %}
