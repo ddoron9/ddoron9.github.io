@@ -30,22 +30,22 @@ classes: wide
 
     <nav class="home-sidebar__panel home-nav" aria-label="Category navigation">
       <p class="home-nav__label">Categories</p>
-      <a class="home-nav__link" href="#recent-posts">
+      <button class="home-nav__link is-active" type="button" data-panel="recent-posts">
         <span>all</span>
         <span>{{ site.posts | size }}</span>
-      </a>
+      </button>
       {% for category in home_categories %}
         {% assign category_posts = site.categories[category] %}
-        <a class="home-nav__link" href="#category-{{ category }}">
+        <button class="home-nav__link" type="button" data-panel="category-{{ category }}">
           <span>{{ category }}</span>
           <span>{{ category_posts | size }}</span>
-        </a>
+        </button>
       {% endfor %}
     </nav>
   </aside>
 
   <div class="home-main">
-    <section class="home-section" id="recent-posts">
+    <section class="home-section home-panel is-active" data-panel="recent-posts">
       <div class="home-section__header">
         <p class="home-section__kicker">Recent</p>
         <h2>최신 글</h2>
@@ -77,7 +77,7 @@ classes: wide
 
     {% for category in home_categories %}
       {% assign category_posts = site.categories[category] %}
-      <section class="home-section" id="category-{{ category }}">
+      <section class="home-section home-panel" data-panel="category-{{ category }}">
         <div class="home-section__header">
           <p class="home-section__kicker">Category</p>
           <h2>{{ category | capitalize }}</h2>
@@ -107,3 +107,26 @@ classes: wide
     {% endfor %}
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const buttons = Array.from(document.querySelectorAll(".home-nav__link[data-panel]"));
+    const panels = Array.from(document.querySelectorAll(".home-panel[data-panel]"));
+
+    function activate(panelName) {
+      buttons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.panel === panelName);
+      });
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("is-active", panel.dataset.panel === panelName);
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", function () {
+        activate(button.dataset.panel);
+      });
+    });
+  });
+</script>
