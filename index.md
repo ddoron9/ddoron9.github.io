@@ -9,6 +9,48 @@
   }
   .hero h1 { margin: 0 0 0.6rem; }
   .hero p { margin: 0; color: #4b5563; }
+  .quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 0.9rem 0 0;
+  }
+  .quick-btn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .quick-btn:hover {
+    background: #dbeafe;
+  }
+  .toc {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin: 1rem 0 1.4rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  }
+  .toc strong {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .toc ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .toc li { margin: 0.2rem 0; }
+  .toc a {
+    color: #1f2937;
+    text-decoration: none;
+  }
+  .toc a:hover { text-decoration: underline; }
   .grid { display: grid; gap: 1rem; margin: 1rem 0 1.5rem; }
   .grid-3 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .card {
@@ -43,9 +85,24 @@
 <section class="hero">
   <h1>내 블로그 시작 🚀</h1>
   <p>기술 + 일상 + 독서를 함께 기록하는 공간입니다.</p>
+  <div class="quick-nav">
+    <a class="quick-btn" href="#categories">카테고리 보기</a>
+    <a class="quick-btn" href="#guide">운영 방식</a>
+    <a class="quick-btn" href="#template">작성 템플릿</a>
+    <a class="quick-btn" href="./categories.md">카테고리 가이드</a>
+  </div>
 </section>
 
-## 카테고리
+<nav class="toc" aria-label="페이지 목차">
+  <strong>빠른 목차</strong>
+  <ul>
+    <li><a href="#categories">카테고리</a></li>
+    <li><a href="#guide">추천 운영 방식</a></li>
+    <li><a href="#template">글 작성 템플릿</a></li>
+  </ul>
+</nav>
+
+<h2 id="categories">카테고리</h2>
 
 <section class="grid grid-3">
   <article class="card">
@@ -64,7 +121,7 @@
 
 <p class="muted">자세한 기준은 <a href="./categories.md"><code>categories.md</code></a> 에 정리해두었습니다.</p>
 
-## 추천 운영 방식
+<h2 id="guide">추천 운영 방식</h2>
 
 <div class="callout">
   카테고리는 3개로 고정하고, 세부 주제는 태그로 확장하면 글이 많아져도 구조가 무너지지 않습니다.
@@ -79,7 +136,7 @@
   <span class="pill">Tag: fiction</span>
 </div>
 
-## 글 작성 템플릿 (GitHub Pages/Jekyll)
+<h2 id="template">글 작성 템플릿 (GitHub Pages/Jekyll)</h2>
 
 ```md
 ---
