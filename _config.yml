@@ -1,5 +1,5 @@
-title: "DDORON9 // CYBERLOG"
-description: "Code, notes, experiments, and midnight builds."
+title: "DDORON9"
+description: "밤에 만든 것들을 기록하는 개발 블로그."
 url: "https://ddoron9.github.io"
 baseurl: ""
 
@@ -15,9 +15,12 @@ timezone: "Asia/Seoul"
 
 author:
   name: "ddoron9"
-  bio: "Building in the dark, shipping in neon."
+  bio: "개발 기록과 작은 실험을 차분히 남깁니다."
   location: "Seoul"
   links:
+    - label: "doyikim34@naver.com"
+      icon: "fas fa-envelope"
+      url: "mailto:doyikim34@naver.com"
     - label: "GitHub"
       icon: "fab fa-github"
       url: "https://github.com/ddoron9"
@@ -49,4 +52,4 @@ paginate_path: /page:num/
 
 header_pages:
   - about.md
-
+  - categories.md

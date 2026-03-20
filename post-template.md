@@ -1,8 +1,7 @@
 ---
-layout: post
 title: "제목을 입력하세요"
-date: 2026-03-20
-category: Tech
+date: 2026-03-20 00:00:00 +0900
+categories: [dev]
 tags: [tag1, tag2]
 ---
 
