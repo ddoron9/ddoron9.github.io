@@ -5,6 +5,445 @@ title: "CYBERLOG"
 classes: wide
 ---
 
+> 밤에 만든 것들을 기록하는 개발 블로그.
+
+<style>
+  /* Sidebar category 클릭 시, 오른쪽에 표시될 리스트 패널 */
+  #category-inline-panel {
+    margin-top: 1rem;
+    border: 1px solid rgba(35, 240, 255, 0.18);
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-cyan);
+    overflow: hidden;
+  }
+
+  #category-inline-panel.is-hidden {
+    display: none;
+  }
+
+  #category-inline-panel .category-inline-title {
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.65rem;
+  }
+
+  #category-inline-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #category-inline-panel li {
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(35, 240, 255, 0.10);
+  }
+
+  #category-inline-panel li:first-child {
+    border-top: 0;
+  }
+
+  #category-inline-panel a {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+
+  #category-inline-panel a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(35, 240, 255, 0.35);
+  }
+
+  #category-inline-panel .meta {
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  /* 기본 “Recent Posts” 섹션을 우리 패널로 대체 */
+  .category-inline-hidden-recent {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    function normalizeSlug(s) {
+      if (!s) return "";
+      return String(s)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9가-힣\-_]/g, "");
+    }
+
+    function extractSlugFromHref(href) {
+      if (!href) return "";
+      try {
+        const u = new URL(href, window.location.origin);
+        const parts = u.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        return normalizeSlug(decodeURIComponent(last));
+      } catch (e) {
+        const hash = href.split("#")[1];
+        return normalizeSlug(hash || href);
+      }
+    }
+
+    const POSTS = [
+      {% for post in site.posts %}
+        {
+          url: {{ post.url | relative_url | jsonify }},
+          title: {{ post.title | jsonify }},
+          date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
+          categories: [
+            {% for c in post.categories %}
+              {{ c | slugify | jsonify }}{% unless forloop.last %}, {% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
+
+    const POSTS_BY_CATEGORY = {};
+    const ALL = POSTS.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    POSTS.forEach((p) => {
+      (p.categories || []).forEach((slug) => {
+        if (!POSTS_BY_CATEGORY[slug]) POSTS_BY_CATEGORY[slug] = [];
+        POSTS_BY_CATEGORY[slug].push(p);
+      });
+    });
+    Object.keys(POSTS_BY_CATEGORY).forEach((k) => {
+      POSTS_BY_CATEGORY[k].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+    function hideDefaultRecentPosts() {
+      const recentlyHeadings = Array.from(
+        document.querySelectorAll(
+          ".page__content h1, .page__content h2, .page__content h3"
+        )
+      );
+
+      recentlyHeadings.forEach((h) => {
+        const t = (h.textContent || "").trim().toLowerCase();
+        const isRecent =
+          t === "recent posts" ||
+          t.includes("recent posts") ||
+          t.includes("최근글") ||
+          (t.includes("recent") && t.includes("post"));
+
+        if (!isRecent) return;
+
+        const container = h.closest("section") || h.closest("div") || h.parentElement;
+        if (container) container.classList.add("category-inline-hidden-recent");
+      });
+    }
+
+    function ensurePanelMounted() {
+      let panel = document.getElementById("category-inline-panel");
+      if (panel) return panel;
+
+      panel = document.createElement("div");
+      panel.id = "category-inline-panel";
+      panel.className = "is-hidden";
+
+      panel.innerHTML = `
+        <div class="category-inline-title">Recent Posts</div>
+        <ul></ul>
+      `;
+
+      // 홈 메인 영역에 삽입 (Minimal Mistakes의 중앙 컬럼)
+      const target =
+        document.querySelector(".page__content .initial-content") ||
+        document.querySelector(".page__content") ||
+        document.querySelector("main") ||
+        document.body;
+
+      target.appendChild(panel);
+      return panel;
+    }
+
+    function renderPanel(categorySlug, label) {
+      const panel = document.getElementById("category-inline-panel");
+      if (!panel) return;
+
+      const title = panel.querySelector(".category-inline-title");
+      const list = panel.querySelector("ul");
+      if (!title || !list) return;
+
+      const posts = categorySlug === "all" ? ALL : (POSTS_BY_CATEGORY[categorySlug] || []);
+
+      title.textContent = categorySlug === "all" ? "Recent Posts" : ("Category: " + (label || categorySlug));
+
+      list.innerHTML = "";
+      posts.slice(0, 10).forEach((p) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = p.url;
+        a.textContent = p.title;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = p.date;
+
+        li.appendChild(a);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+
+      panel.classList.remove("is-hidden");
+      hideDefaultRecentPosts();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      ensurePanelMounted();
+      renderPanel("all");
+
+      // 사이드바 카테고리(기존 버튼)를 클릭하면 목록만 바꿈
+      const taxonomyLinks = Array.from(document.querySelectorAll(".taxonomy__index a"));
+      taxonomyLinks.forEach((a) => {
+        a.addEventListener("click", function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+          const href = a.getAttribute("href") || "";
+          const slugFromHref = extractSlugFromHref(href);
+          const slugFromText = normalizeSlug((a.textContent || "").trim());
+          const label = (a.textContent || "").trim();
+
+          const slug =
+            slugFromHref && (POSTS_BY_CATEGORY[slugFromHref] || slugFromHref === "all")
+              ? slugFromHref
+              : slugFromText;
+
+          if (!slug) return;
+
+          e.preventDefault();
+          renderPanel(slug, label);
+        });
+      });
+    });
+  })();
+</script>
+
+---
+layout: home
+author_profile: true
+title: "CYBERLOG"
+classes: wide
+---
+
+> 밤에 만든 것들을 기록하는 개발 블로그.
+
+<style>
+  /* Sidebar category 클릭 시, 오른쪽에 표시될 리스트 패널 */
+  #category-inline-panel {
+    margin-top: 1rem;
+    border: 1px solid rgba(35, 240, 255, 0.14);
+    background: rgba(10, 14, 28, 0.42);
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 0 18px rgba(35, 240, 255, 0.05);
+    overflow: hidden;
+  }
+
+  #category-inline-panel.is-hidden {
+    display: none;
+  }
+
+  #category-inline-panel .category-inline-title {
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.65rem;
+  }
+
+  #category-inline-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #category-inline-panel li {
+    padding: 0.65rem 0;
+    border-top: 1px solid rgba(35, 240, 255, 0.10);
+  }
+
+  #category-inline-panel li:first-child {
+    border-top: 0;
+  }
+
+  #category-inline-panel a {
+    color: #23f0ff;
+    text-decoration: none;
+  }
+
+  #category-inline-panel a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(35, 240, 255, 0.35);
+  }
+
+  #category-inline-panel .meta {
+    margin-top: 0.25rem;
+    color: rgba(137, 168, 184, 0.95);
+    font-size: 0.92rem;
+  }
+
+  /* 최소한의 일치: “Recent Posts” 섹션은 클릭 시 우리 패널로 대체 */
+  .category-inline-hidden-recent {
+    display: none !important;
+  }
+</style>
+
+<script>
+  (function () {
+    function normalizeSlug(s) {
+      if (!s) return "";
+      return String(s)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9가-힣\-_]/g, "");
+    }
+
+    function extractSlugFromHref(href) {
+      if (!href) return "";
+      try {
+        const u = new URL(href, window.location.origin);
+        const parts = u.pathname.split("/").filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        return normalizeSlug(decodeURIComponent(last));
+      } catch (e) {
+        const hash = href.split("#")[1];
+        return normalizeSlug(hash || href);
+      }
+    }
+
+    const POSTS = [
+      {% for post in site.posts %}
+        {
+          url: {{ post.url | relative_url | jsonify }},
+          title: {{ post.title | jsonify }},
+          date: {{ post.date | date: "%Y-%m-%d" | jsonify }},
+          categories: [
+            {% for c in post.categories %}
+              {{ c | slugify | jsonify }}{% unless forloop.last %}, {% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
+
+    const POSTS_BY_CATEGORY = {};
+    const ALL = POSTS.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    POSTS.forEach((p) => {
+      (p.categories || []).forEach((slug) => {
+        if (!POSTS_BY_CATEGORY[slug]) POSTS_BY_CATEGORY[slug] = [];
+        POSTS_BY_CATEGORY[slug].push(p);
+      });
+    });
+    Object.keys(POSTS_BY_CATEGORY).forEach((k) => {
+      POSTS_BY_CATEGORY[k].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+    function renderPanel(categorySlug) {
+      const panel = document.getElementById("category-inline-panel");
+      if (!panel) return;
+
+      const title = panel.querySelector(".category-inline-title");
+      const list = panel.querySelector("ul");
+      if (!title || !list) return;
+
+      const posts = categorySlug === "all" ? ALL : (POSTS_BY_CATEGORY[categorySlug] || []);
+
+      const label =
+        categorySlug === "all"
+          ? "Recent Posts"
+          : ("Category: " + categorySlug);
+
+      title.textContent = label;
+
+      list.innerHTML = "";
+      posts.slice(0, 10).forEach((p) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = p.url;
+        a.textContent = p.title;
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = p.date;
+        li.appendChild(a);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+
+      panel.classList.remove("is-hidden");
+
+      // Recent Posts(기본 섹션) 숨기고, 우리 패널로 대체
+      const recentlyHeadings = Array.from(document.querySelectorAll(".page__content h1, .page__content h2, .page__content h3"));
+      recentlyHeadings.forEach((h) => {
+        const t = (h.textContent || "").trim().toLowerCase();
+        if (t === "recent posts" || t.includes("recent posts") || t.includes("최근글")) {
+          const container = h.closest("section") || h.closest("div") || h.parentElement;
+          if (container) container.classList.add("category-inline-hidden-recent");
+        }
+      });
+    }
+
+    function ensurePanelMounted() {
+      let panel = document.getElementById("category-inline-panel");
+      if (panel) return panel;
+
+      panel = document.createElement("div");
+      panel.id = "category-inline-panel";
+      panel.className = "is-hidden";
+
+      panel.innerHTML = `
+        <div class="category-inline-title">Recent Posts</div>
+        <ul></ul>
+      `;
+
+      // 홈 메인 영역에 삽입 (Minimal Mistakes의 중앙 컬럼)
+      const target =
+        document.querySelector(".page__content .initial-content") ||
+        document.querySelector(".page__content") ||
+        document.querySelector("main") ||
+        document.body;
+
+      target.appendChild(panel);
+      return panel;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      ensurePanelMounted();
+
+      // 기본은 전체(최신글) 표시
+      renderPanel("all");
+
+      // 사이드바 카테고리(기존 버튼)를 클릭하면 목록만 바꿈
+      const taxonomyLinks = Array.from(document.querySelectorAll(".taxonomy__index a"));
+      taxonomyLinks.forEach((a) => {
+        a.addEventListener("click", function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // 보조 클릭은 기본 동작 유지
+
+          const slug = extractSlugFromHref(a.getAttribute("href")) || normalizeSlug(a.textContent);
+          if (!slug) return;
+
+          e.preventDefault();
+          renderPanel(slug);
+        });
+      });
+    });
+  })();
+</script>
+
+---
+layout: home
+author_profile: true
+title: "CYBERLOG"
+classes: wide
+---
+
 <!--
 <style>
   .hero {
