@@ -36,6 +36,9 @@
     padding: 0.85rem 1rem;
     margin: 1rem 0 1.4rem;
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    position: sticky;
+    top: 0.8rem;
+    z-index: 20;
   }
   .toc strong {
     display: block;
@@ -51,6 +54,11 @@
     text-decoration: none;
   }
   .toc a:hover { text-decoration: underline; }
+  @media (max-width: 700px) {
+    .toc {
+      top: 0.4rem;
+    }
+  }
   .grid { display: grid; gap: 1rem; margin: 1rem 0 1.5rem; }
   .grid-3 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .card {
