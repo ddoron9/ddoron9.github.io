@@ -319,7 +319,8 @@ classes: wide
         {% endfor %}
       ],
       {% for category in home_categories %}
-        {% assign category_posts = site.categories[category] | sort: "date" | reverse %}
+        {% assign category_posts = site.categories[category] | default: empty %}
+        {% assign category_posts = category_posts | sort: "date" | reverse %}
         {{ category | jsonify }}: [
           {% for post in category_posts %}
             {
