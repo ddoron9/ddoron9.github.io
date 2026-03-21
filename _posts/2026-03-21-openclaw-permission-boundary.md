@@ -1,7 +1,7 @@
 ---
 title: "편의성과 통제권 사이: OpenClaw가 사용자 권한을 가질 때 생기는 문제"
 date: 2026-03-21 10:55:00 +0900
-categories: [ops]
+categories: [trouble]
 tags: [openclaw, permissions, security, slack, agent]
 ---
 
