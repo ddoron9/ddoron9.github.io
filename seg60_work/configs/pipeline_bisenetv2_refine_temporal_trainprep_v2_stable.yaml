@@ -1,0 +1,59 @@
+run:
+  id: pipeline_bisenetv2_refine_temporal_trainprep_v2_stable
+  seed: 42
+
+model:
+  name: bisenetv2
+  num_classes: 2
+
+coarse_checkpoint: outputs/run02_bisenet_smoke_weighted_5epoch/best.pt
+
+data:
+  input_size: [320, 512]
+  train_mix:
+    - manifest: datasets/manifests/p3m10k_train.csv
+      weight: 0.60
+    - manifest: datasets/manifests/davis2017_train.csv
+      weight: 0.20
+    - manifest: datasets/manifests/internal_train.csv
+      weight: 0.20
+  val_sets:
+    - datasets/manifests/internal_val.csv
+    - datasets/manifests/davis2017_val.csv
+
+infer:
+  threshold: 0.6
+
+refine:
+  boundary_radius: 1
+  confidence_margin: 0.02
+  dilation_radius: 0
+  in_channels: 6
+  hidden_channels: 24
+  depth: 3
+  residual_scale: 0.10
+
+temporal:
+  alpha_base: 0.55
+  alpha_confidence_gain: 0.35
+  alpha_motion_gain: 0.20
+  alpha_boundary_penalty: 0.15
+  alpha_min: 0.20
+  alpha_max: 0.92
+  motion_normalize: 16.0
+  stable_motion_threshold: 0.25
+
+refine_train:
+  target: boundary_error_correction
+  loss: bce_dice_local
+  batch_size: 8
+  epochs: 30
+  lr: 0.0003
+  weight_decay: 0.0001
+  band_min_capture_target: 0.35
+  early_stop_metric: val_after_boundary_f1
+  notes:
+    - stability-tuned follow-up to v1 midscale
+    - lower lr
+    - extend run to 30 epochs for reliable convergence check
+    - train only the refinement head first
