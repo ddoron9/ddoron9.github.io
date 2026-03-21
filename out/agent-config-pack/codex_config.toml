@@ -1,0 +1,36 @@
+# Codex expert starter config
+# Location suggestion: ~/.codex/config.toml (or project-local when needed)
+
+[profile]
+name = "expert"
+language = "ko-KR"
+verbosity = "concise"
+
+[execution]
+autonomy = "high"
+confirm_before_destructive = true
+persist_until_done = true
+
+[editing]
+prefer_small_commits = true
+avoid_unrelated_changes = true
+default_to_ascii = true
+
+[quality]
+run_lint_after_edit = true
+run_tests_after_edit = true
+require_repro_steps_on_failure = true
+
+[search]
+prefer_rg = true
+parallelize_reads = true
+
+[git]
+branch_prefix = "codex/"
+commit_style = "conventional"
+
+[review]
+prioritize = ["bugs", "regressions", "security", "missing_tests"]
+
+[response]
+include = ["changed_files", "why", "validation", "remaining_risks"]
