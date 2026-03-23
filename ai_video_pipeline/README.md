@@ -28,6 +28,22 @@ python3 scripts/render_episode.py --spec output/latest_episode.json
 - 기본 엔드포인트: `http://127.0.0.1:8188`
 - `config/pipeline.json`의 `comfy_api` 및 `workflow_path` 수정 가능
 
+## Wan 2.1 Mac 시도 경로
+32GB unified memory Mac 기준 권장 조합:
+- `city96/Wan2.1-I2V-14B-480P-gguf` 의 `Q4_K_M`
+- `Comfy-Org/Wan_2.1_ComfyUI_repackaged` 의 fp8 text encoder + clip vision + vae
+- custom node: `ComfyUI-GGUF`
+
+설치:
+```bash
+cd ai_video_pipeline
+bash scripts/setup_wan_mac.sh
+```
+
+메모:
+- full fp16 Wan 14B는 Mac에서 사실상 무겁다
+- 먼저 480p / 짧은 클립으로 안정성 확인 후 업스케일하는 쪽이 현실적이다
+
 ## 크론 예시 (매일 10:00 아이디어)
 ```cron
 0 10 * * * cd /Users/gimdoi/.openclaw/workspace/ai_video_pipeline && /usr/bin/python3 scripts/generate_ideas.py --count 3 >> output/cron.log 2>&1
