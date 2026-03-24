@@ -1,0 +1,6 @@
+name = "eyebrow-consulting-mvp-api"
+main = "worker/index.js"
+compatibility_date = "2026-03-11"
+
+[observability.logs]
+enabled = true
