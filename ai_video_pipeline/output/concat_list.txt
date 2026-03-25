@@ -1,6 +1,0 @@
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_01.mp4'
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_02.mp4'
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_03.mp4'
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_04.mp4'
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_05.mp4'
-file '/Users/gimdoi/.openclaw/workspace/ai_video_pipeline/tmp_motion/clips/scene_06.mp4'

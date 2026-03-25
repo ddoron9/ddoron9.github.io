@@ -1,0 +1,18 @@
+# Blog-only repository - ignore everything except essential blog files
+
+# Ignore all files by default
+*
+# Allow essential blog files
+!*/
+!.gitignore
+!_config.yml
+!index.md
+!about.md
+!categories.md
+!post-template.md
+!_posts/
+!assets/
+
+# Allow all files within allowed directories
+!_posts/**
+!assets/**
