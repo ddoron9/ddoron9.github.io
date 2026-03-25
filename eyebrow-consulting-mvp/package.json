@@ -5,5 +5,13 @@
   "type": "module",
   "scripts": {
     "demo": "node src/demo.js"
+  },
+  "description": "This starter pack fixes numbers for a zero-loss MVP and includes:",
+  "main": "test-screenshot.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.58.2"
   }
 }
