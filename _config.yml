@@ -1,0 +1,53 @@
+title: "DDORON9"
+description: "밤에 만든 것들을 기록하는 개발 블로그."
+url: "https://ddoron9.github.io"
+baseurl: ""
+
+remote_theme: "mmistakes/minimal-mistakes@4.28.0"
+
+plugins:
+  - jekyll-include-cache
+  - jekyll-feed
+  - jekyll-seo-tag
+
+locale: "ko-KR"
+timezone: "Asia/Seoul"
+
+author:
+  name: "ddoron9"
+  bio: "개발 기록과 작은 실험을 차분히 남깁니다."
+  location: "Seoul"
+  links:
+    - label: "doyikim34@naver.com"
+      icon: "fas fa-envelope"
+      url: "mailto:doyikim34@naver.com"
+    - label: "GitHub"
+      icon: "fab fa-github"
+      url: "https://github.com/ddoron9"
+
+minimal_mistakes_skin: "dark"
+
+search: true
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: false
+      classes: wide
+      read_time: true
+      comments: false
+      share: false
+      related: true
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
+      author_profile: true
+
+header_pages:
+  - about.md
+  - categories.md
